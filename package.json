@@ -1,0 +1,42 @@
+{
+  "name": "dsh-unity-game-mode",
+  "version": "1.1.0",
+  "private": true,
+  "description": "A Unity game development mode for DeepSeek Harness: the full ptc preset plus the Unity Editor MCP connection, fronted by a session-surviving bridge.",
+  "keywords": [
+    "dsh",
+    "dsh-bundle",
+    "unity",
+    "mcp",
+    "agent-preset"
+  ],
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "index.js",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./index.js",
+    "./bridge": "./bridge.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "bridge.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.2.3-0"
+  },
+  "scripts": {
+    "test": "node test/plugin-contract.test.mjs && node test/bridge.test.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
