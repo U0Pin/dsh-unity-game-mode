@@ -7,18 +7,18 @@
 前置条件，每位安装者自己的机器：
 
 - DSH 版本满足 `package.json` 的 `engines.dsh`（`>=0.2.2-rc.1 <0.2.3-0`）；不符时安装阶段被拒。
-- 本机已登录 GitHub。私有仓库按本机凭据读取，安装框没有密码输入。
-- Unity 已启动 `MCP for Unity`，监听 `127.0.0.1:8080`。未启动也能安装、开对话，只是调用工具会报「编辑器未连接」。
+- 仓库访问沿用本机 GitHub 登录状态：安装框没有密码输入，没权限时直接失败。
+- Unity 已安装并启动 [MCP for Unity](https://github.com/CoplayDev/unity-mcp)，服务监听 `127.0.0.1:8080`。这是编辑器侧的上游服务器，不随本包分发；没启动也能安装、开对话，只是调用工具会报「编辑器未连接」。
 
 步骤：
 
-1. 打开 **添加插件**，填仓库地址并带版本标签，`<org>/<repo>` 换成本仓库地址：
+1. 打开 **添加插件**，填仓库地址并带版本标签：
 
    ```
-   https://github.com/<org>/<repo>#v1.1.0
+   https://github.com/U0Pin/dsh-unity-mcp-client#v1.1.1
    ```
 
-   安装器解析不了时改用 `git+https://github.com/<org>/<repo>.git#v1.1.0`。
+   安装器解析不了时改用 `git+https://github.com/U0Pin/dsh-unity-mcp-client.git#v1.1.1`。
 2. 新建对话时在模式列表选 `unity游戏开发`。模式在对话开始后不能更换。
 
 ## 使用

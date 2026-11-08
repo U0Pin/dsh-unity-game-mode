@@ -13,12 +13,13 @@
 | `locale/{zh,en}.json` | 插件列表里的显示名与说明 |
 | `icon.svg` | 插件图标 |
 | `test/` | 自检，不随包分发 |
+| 上游 | [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp)（MCP for Unity，MIT）：编辑器侧服务器，不随包分发 |
 
 仓库根目录即包：安装器按仓库地址取包时，拿到的就是 `files` 白名单里的内容。
 
 ## 桥接与失效语义
 
-Unity 的 MCP 服务器随编辑器启停，编辑器重启会带走所有 MCP 会话：带旧 `mcp-session-id` 的请求返回 `404 {"code": -32600, "message": "Session not found"}`。streamable-HTTP 传输不为此报 `onclose`，DSH 的 MCP 客户端不会自己发现，工具仍注册着，后续调用全部失败，只能重开对话恢复。
+Unity 的 MCP 服务器（[MCP for Unity](https://github.com/CoplayDev/unity-mcp)）随编辑器启停，编辑器重启会带走所有 MCP 会话：带旧 `mcp-session-id` 的请求返回 `404 {"code": -32600, "message": "Session not found"}`。streamable-HTTP 传输不为此报 `onclose`，DSH 的 MCP 客户端不会自己发现，工具仍注册着，后续调用全部失败，只能重开对话恢复。
 
 `bridge.js` 接管上游会话，对外提供一个不随编辑器消失的服务器：
 
@@ -59,6 +60,7 @@ Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与
 
 - 模式不支持继承：`cordis.patch.yml` 的子插件清单是 DSH `0.2.2-rc.1` 自带 `ptc` 模式的拷贝，不是官方发行物；对外分发前确认相关条款。
 - 应用升级后手动同步该清单、核对 `engines.dsh` 并升包版本。`engines.dsh` 锁在同一条小版本线上，跨线安装会被安装阶段拒绝，这是有意的。
+- 上游 MCP for Unity 有独立发布节奏，本包不锁定其版本。桥接依赖它的 streamable-HTTP 传输、`manage_tools` 的 `list_groups` 输出和工具上的 `_meta.fastmcp.tags`；这些契约变化时桥接要跟着改。
 
 ## 发版
 
