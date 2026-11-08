@@ -30,7 +30,7 @@ DSH 会话 ──HTTP──▶ unity-mcp-bridge (127.0.0.1:18080/mcp) ──HTTP
 - `initialize` 立即返回：编辑器在线时是真实服务器信息，离线时是上次缓存或占位信息。编辑器关着也能开对话，工具不会掉。
 - 请求被转发；上游会话失效时桥接重建会话并把该请求重发一次。会话失效意味着服务器在执行之前就拒绝了请求，重发安全。
 - `tools/list` 在编辑器离线时退回缓存；监督循环在编辑器回来后重读，注入给模型的集合有变化才向下游广播 `notifications/tools/list_changed`。
-- 只注入已启用分组的工具：`manage_tools {action:"list_groups"}` 的 `enabled` 与工具自带的 `_meta.fastmcp.tags: ["group:<name>"]` 求交集；没有分组标签的工具（`manage_tools` 及其它元工具）永远保留；读不到分组状态时全部放行。
+- 只注入没有被明确禁用的分组工具：分组由工具自带的 `_meta.fastmcp.tags: ["group:<name>"]` 标记，`manage_tools {action:"list_groups"}` 返回 `enabled: false` 的分组才隐藏；没有分组标签的工具（`manage_tools` 及其它元工具）永远保留；读不到分组状态时全部放行。
 - 有下游会话时监督循环轮询上游，避免服务器 30 分钟的会话空闲超时。
 - 端口被占用是安全的：第二个 Host 复用已在跑的桥接实例；先启动的 Host 退出后，剩下的在几秒内接管端口。
 
@@ -38,19 +38,17 @@ DSH 会话 ──HTTP──▶ unity-mcp-bridge (127.0.0.1:18080/mcp) ──HTTP
 
 ## 配置
 
-参数与默认值以 `cordis.patch.yml` 的 `unity-mcp-bridge` 行为准，包括 `port`/`host`、`upstreamUrl`、`callWaitMs`、`pollUpMs`/`pollDownMs`、`groupFilter`、`groupStateMs`。改端口时同步修改 `unity-mcp` 行的 `url`。
+行配置透传给 `createBridge`：未设置的项取 `bridge.js` 里 `DEFAULTS` 的值，`index.js` 另外补上 `stateFile` 的默认值。改端口要同步修改 `unity-mcp` 行的 `url`。
 
 ## 诊断
 
-`curl http://127.0.0.1:18080/health` 返回上游是否连接、当前上游会话 id、工具数量（`tools` 为服务器列出的总数，`visible` 为实际注入的数量，`groups` 为已启用分组）、下游会话数与订阅流数量。
+`curl http://127.0.0.1:18080/health` 返回 `status()` 的快照：上游连接状态与会话 id、工具总数与注入数（`tools`/`visible`）、已启用分组、下游会话数与订阅流数量。
 
 Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与工具列表变化。桥接把最近一次的服务器信息与工具列表缓存到 `~/.dsh/cache/unity-mcp-bridge.json`，冷启动时先注册这些工具。
 
 ## 自检
 
-`npm test` 先跑插件契约测试（`apply()` 起停桥接、第二个实例复用、dispose 释放端口），再跑桥接自测。自测用假上游覆盖编辑器关/开、会话丢失、工具分组切换；真实服务器场景只在本机 `8080` 可用时执行，它证明上游会话被删除后调用仍能透明恢复。
-
-也可以分开跑 `node test/plugin-contract.test.mjs` 和 `node test/bridge.test.mjs`。
+`npm test` 跑插件契约测试与桥接自测，两者也可分别用 `node test/plugin-contract.test.mjs`、`node test/bridge.test.mjs` 运行。桥接自测用假上游；需要真实服务器的用例只在本机 `127.0.0.1:8080` 可用时执行，否则跳过。
 
 ## 本地开发
 
@@ -58,13 +56,13 @@ Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与
 
 ## 兼容性与维护
 
-- 模式不支持继承：`cordis.patch.yml` 的子插件清单是 DSH `0.2.2-rc.1` 自带 `ptc` 模式的拷贝，不是官方发行物；对外分发前确认相关条款。
+- `cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 模式的拷贝，不是官方发行物；对外分发前确认相关条款。
 - 应用升级后手动同步该清单、核对 `engines.dsh` 并升包版本。`engines.dsh` 锁在同一条小版本线上，跨线安装会被安装阶段拒绝，这是有意的。
-- 0.x 表示测试版：次版本号提升可能带来不兼容变化，使用者按标签安装。
+- 0.x 是测试版：次版本号提升可能带来不兼容变化。
 - 上游 MCP for Unity 有独立发布节奏，本包不锁定其版本。桥接依赖它的 streamable-HTTP 传输、`manage_tools` 的 `list_groups` 输出和工具上的 `_meta.fastmcp.tags`；这些契约变化时桥接要跟着改。
 
 ## 发版
 
-1. 改 `package.json` 版本号；应用版本变化时同步 `engines.dsh`。
+1. 改 `package.json` 版本号，同步 README 安装示例里的标签；应用版本变化时同步 `engines.dsh`。
 2. `npm test` 通过后提交并推送 `main`，打标签 `v<version>` 并推送标签；发布说明写在标签注解里。
 3. 通知使用者卸载旧版、按新标签安装。

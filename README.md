@@ -1,52 +1,46 @@
-# Unity 游戏开发模式（DSH bundle）
+# Unity 游戏开发模式（DSH 插件）
 
-`dsh-unity-game-mode` 给 DSH 加一个对话模式 `unity游戏开发`：在 PTC 全套工具之外接入 Unity 编辑器，编辑器重启也不会丢连接。
+装上它，DSH（DeepSeek Harness）的对话模式里会多一个 `unity游戏开发`。选这个模式开对话，AI 就能直接查看、修改、测试你的 Unity 工程，不你手动复制粘贴文件
 
-> 0.x 测试版：模式内容与安装方式还可能调整，请按带标签的版本安装。
+## 开始之前
+
+需要三样东西，缺一样都跑不起来：
+
+1. **DSH**：装好，并能正常开对话。
+2. **Unity**：装好编辑器，要用的工程能正常打开。
+3. **MCP for Unity**：让 DSH 和 Unity 通信的配套插件，和 Unity 工程一起用。按[官方说明](https://github.com/CoplayDev/unity-mcp)装好，在 Unity 里打开菜单 `Window > MCP for Unity`，把服务启动起来并保持运行。
 
 ## 安装
 
-前置条件，每位安装者自己的机器：
-
-- DSH 版本满足 `package.json` 的 `engines.dsh`（`>=0.2.2-rc.1 <0.2.3-0`）；不符时安装阶段被拒。
-- 仓库访问沿用本机 GitHub 登录状态：安装框没有密码输入，没权限时直接失败。
-- Unity 已安装并启动 [MCP for Unity](https://github.com/CoplayDev/unity-mcp)，服务监听 `127.0.0.1:8080`。这是编辑器侧的上游服务器，不随本包分发；没启动也能安装、开对话，只是调用工具会报「编辑器未连接」。
-
-步骤：
-
-1. 打开 **添加插件**，填仓库地址并带版本标签：
+1. 在 DSH 里打开 **插件→添加插件**。
+2. 填入这个仓库地址（末尾的 `#v0.1.0` 是版本号，不要漏掉）：
 
    ```
    https://github.com/U0Pin/dsh-unity-mcp-client#v0.1.0
    ```
 
-   安装器解析不了时改用 `git+https://github.com/U0Pin/dsh-unity-mcp-client.git#v0.1.0`。
-2. 新建对话时在模式列表选 `unity游戏开发`。模式在对话开始后不能更换。
+   填了没反应或报错时，换成下面这个地址再试一次：
+
+   ```
+   git+https://github.com/U0Pin/dsh-unity-mcp-client.git#v0.1.0
+   ```
+3. 新建一个对话，在模式列表里选 `unity游戏开发`。模式在新建对话时选定，之后不能改；选错了新开一个对话即可。
 
 ## 使用
 
-- 只有这个模式带 Unity 工具（`mcp__unity__*`）；`standard`/`ptc`/`minimal`/`cordis` 模式不受影响。
-- 默认可见 `core` 分组的 30 个工具。需要别的分组时让 agent 用 `manage_tools` 打开；全部分组共 49 个，服务器新增的工具会自动出现，不用重启。
-- 工具依赖编辑器：编辑器关着时调用会明确报「Unity 编辑器未连接」，工具本身不掉，编辑器打开后自动可用。
-- 同时开着多个 Unity 对话时它们共享分组设置；编辑器重启后分组回到默认的 `core`。
-- 桥接进程跟着 DSH 走，同一个端口只会有一个实例，多个窗口共用。
+- 在工作区使用`unity游戏开发`模式新建对话，直接说需求就行，比如「给 Player 加一个二段跳」「把这个场景的灯光调暗」，AI会自己调用工具进行操作。
+- **一定要启动mcp的服务端！**Unity MCP 服务未启动时 ，AI调用工具会报错 。把 Unity 打开、在 `Window > MCP for Unity` 里启动服务，再让它重试即可，不用重开对话。
 
 ## 升级与卸载
 
-- 第三方 bundle 不自动更新：升级 = 卸载后按新标签重装。
-- 不填标签装到的是默认分支最新提交，没有可回退的版本；请始终带标签安装。
-- 卸载：插件管理里 `remove_bundle`，目标 `dsh-unity-game-mode`。
+- 插件不会自动更新。升级 = 先在插件管理里移除旧版，再用新版本号装一次（把地址里的 `#v0.1.0` 换成新版本号）。
+- 卸载：插件管理里移除 `dsh-unity-game-mode`。
 
 ## 出问题时
 
-1. 确认 Unity 里 `Window > MCP for Unity` 已启动，服务在 `127.0.0.1:8080`。
-2. 看桥接自身状态：
+- **安装时报错或被拒**：先确认这台机器能访问上面的 GitHub 地址，有仓库的访问权限，DSH 也升到最新；两样都正常还装不上，把报错发给维护者。
+- **AI 调用工具一直报错**：确认 Unity 开着，并且 `Window > MCP for Unity` 里的服务是启动状态；改完重试，不用重开对话。
+- **AI无法直接看到mcp工具**：确认当前对话是`unity游戏开发`模式
+- **其它问题**：在 DSH 日志里找以 `unity-mcp-bridge:` 开头的行，连同现象一起发给维护者。
 
-   ```
-   curl http://127.0.0.1:18080/health
-   ```
-
-   `upstream.connected` 为 `false` 表示还没连上编辑器。
-3. 仍无头绪：把 `unity-mcp-bridge:` 开头的 Host 日志行交给维护者。
-
-开发、维护和发版相关信息见 [DEVELOPMENT.md](DEVELOPMENT.md)。
+开发、维护和发版信息见 [DEVELOPMENT.md](DEVELOPMENT.md)。

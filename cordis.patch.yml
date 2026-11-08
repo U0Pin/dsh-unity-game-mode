@@ -1,15 +1,10 @@
-# Agent preset unity: a full copy of the shipped `ptc` preset with one extra
-# child plugin — the Unity Editor MCP connection. Presets do not inherit, so
-# the child list is duplicated on purpose: editing this file never changes
-# `ptc`, and later changes to the shipped `ptc` do not reach this copy.
-# Authored against DSH 0.2.2-rc.1 (see `engines.dsh` in package.json): after a
-# Harness upgrade, re-verify this copy against the shipped preset and bump the
-# package version.
+# Agent preset unity: a copy of the shipped `ptc` preset plus the Unity Editor
+# MCP connection. Presets do not inherit, so the child list is duplicated on
+# purpose. Authored against DSH 0.2.2-rc.1; re-verify after a Harness upgrade
+# (see DEVELOPMENT.md).
 - insert:
-    # The bridge owns the Unity MCP session (see ./bridge.js): the editor's
-    # server dies with the editor and takes every MCP session id with it, which
-    # the MCP client cannot notice on its own. This row is inert until a Unity
-    # session connects, and it is what makes that session survive a restart.
+    # Session-owning bridge in front of the editor's MCP server; inert until a
+    # Unity session connects (see DEVELOPMENT.md).
     - id: unity-mcp-bridge
       name: 'dsh-unity-game-mode'
       config:

@@ -1,16 +1,10 @@
 /**
- * Host half of the Unity game development bundle (DSH).
+ * Host half of the Unity game development bundle (DSH): the `unity-mcp-bridge`
+ * row, which runs the streamable-HTTP bridge from ./bridge.js so the preset's
+ * MCP client keeps one endpoint across editor restarts.
  *
- * The bundle's real job is the preset row that loads the Unity MCP connection,
- * but that connection needs a stable MCP endpoint to talk to: the editor's own
- * server dies with the editor and takes every session id with it. This row runs
- * the streamable-HTTP bridge that owns the upstream session (see ./bridge.js),
- * so the preset's MCP client can stay connected across editor restarts.
- *
- * The row is inert until a Unity session connects to it: with no downstream
- * client the supervisor sleeps and holds no upstream session. It also refuses
- * to fight another Host instance - a second bridge on the same port is reused
- * rather than duplicated.
+ * The row is inert until a Unity session connects, and a second Host on the
+ * same port reuses the running bridge rather than duplicating it.
  */
 
 import { homedir } from 'node:os'

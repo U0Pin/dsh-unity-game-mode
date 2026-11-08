@@ -1,39 +1,14 @@
 /**
  * Streamable-HTTP MCP bridge between DSH and the Unity Editor's MCP server.
  *
- * Why this exists. The Unity server (MCP for Unity) is a Python process that
- * lives and dies with the editor. Every editor restart therefore destroys every
- * MCP session: a request carrying a session id from before the restart answers
- * 404 {"code": -32600, "message": "Session not found"}. The DSH MCP client
- * cannot recover from that on its own - a streamable-HTTP transport never
- * reports onclose for a dead session, so the client keeps believing it is
- * connected, keeps its tools registered, and every call fails until the
- * conversation is reopened.
+ * The editor's server dies with the editor and takes every MCP session with it,
+ * which the MCP client cannot notice on its own. This module owns the upstream
+ * session and serves an endpoint that outlives editor restarts, so the DSH
+ * connection and its tool registrations never drop. Contract, failure
+ * semantics, and knobs: DEVELOPMENT.md.
  *
- * The bridge owns the upstream session instead, and presents a server that
- * never goes away:
- *
- * - initialize always answers immediately (real server info when the editor is
- *   up, last known or synthetic when it is not), so a DSH session started
- *   before the editor never loses its tool registration.
- * - Requests are forwarded; a session that died underneath is re-established
- *   and the request is re-issued once. That is safe precisely because such a
- *   failure means the server rejected the request before running it.
- * - tools/list falls back to the last known list while the editor is away, and
- *   a supervisor re-reads it once the editor returns, broadcasting
- *   notifications/tools/list_changed so the DSH client re-syncs.
- * - Only tools of enabled groups are published: Unity lists every tool no
- *   matter which groups are on, and it does not refuse calls to a disabled
- *   group, so this injection point is the whole progressive-disclosure
- *   mechanism. Group state comes from `manage_tools` list_groups and each
- *   tool's `_meta.fastmcp.tags`; ungrouped meta tools stay visible, and an
- *   unreadable state exposes everything rather than locking the agent out.
- * - A list change is announced only when the published subset really moved:
- *   forwarding Unity's unconditional notification makes the client recreate
- *   every tool definition, which retires the tool admission of the running
- *   step and surfaces as an "unknown tool" failure on the next call.
- * - The supervisor also polls while a session sits idle, which keeps the
- *   upstream session alive past the server's 30 minute idle timeout.
+ * It uses Node built-ins only, and persists the last known server info and tool
+ * list through `stateFile` so a cold editor still answers.
  */
 
 import http from 'node:http'
@@ -93,7 +68,7 @@ function truncate(text, limit = 400) {
   return text.length <= limit ? text : text.slice(0, limit) + '...'
 }
 
-/** Numeric options accept anything finite and positive; everything else clamps. */
+/** Finite numbers clamp into [min, max]; anything else falls back to the default. */
 function numberOption(value, fallback, min, max) {
   const parsed = typeof value === 'string' ? Number(value) : value
   if (typeof parsed !== 'number' || !Number.isFinite(parsed)) return fallback
@@ -282,11 +257,9 @@ function syntheticInitResult(version, protocolVersion) {
 }
 
 /**
- * The group a Unity MCP tool belongs to.
- *
- * The server never marks groups with a top-level field: a tool carries
- * `_meta.fastmcp.tags: ["group:<name>"]`, and an ungrouped tool (a server meta
- * tool such as `manage_tools`) carries no `group:` tag at all.
+ * The group a Unity MCP tool belongs to, from its `_meta.fastmcp.tags`
+ * (`group:<name>`). The server has no top-level group field; meta tools such as
+ * `manage_tools` carry no group tag at all.
  *
  * @param tool - One tool definition from `tools/list`.
  * @returns The group name, or undefined for a tool that is always visible.
@@ -304,16 +277,9 @@ function toolGroup(tool) {
 }
 
 /**
- * The tools a session may inject.
- *
- * A tool is hidden only when the server explicitly reports its group as
- * disabled. Everything else stays visible, which is what keeps newly added
- * tools working: a custom tool may carry a group tag the group manager does
- * not know yet (nobody could enable such a group), and a group entry may omit
- * `enabled` altogether. Both are treated as "not disabled", never as hidden.
- *
- * `manage_tools` is pinned visible by name on top of its missing tag: hiding
- * it would leave the agent no way to enable anything again.
+ * The tools a session may inject: hide a tool only when the server explicitly
+ * reports its group as disabled. `manage_tools` is pinned visible by name;
+ * hiding it would leave the agent no way to enable anything again.
  *
  * @param tools - Raw tool definitions from the server.
  * @param groups - Group state from {@link parseGroups}, or undefined when unknown.
