@@ -1,20 +1,11 @@
 /**
  * Bridge self-test.
  *
- * Four scenarios, all runnable without touching the editor:
- *
- * A. Real Unity server. Connect through the bridge, delete the bridge's
- *    upstream session on the server (exactly what an editor restart does),
- *    and prove the next tool call still succeeds on the same downstream
- *    session.
- * B. Fake upstream. Prove a client connects while the server is down, that the
- *    tool list arrives later with a tools/list_changed notification, and that
- *    a call while the server is away fails with a readable error instead of
- *    hanging.
- * C. Two Hosts on one port: the second reuses the running bridge and takes
- *    the port over when the first exits.
- * D. Tool groups: only enabled groups are injected, activation adds its tools
- *    with one notification, and a toggle that changes nothing stays silent.
+ * A fake upstream carries the lifecycle the editor cannot be made to rehearse
+ * on demand: server down, server returning, session lost under a live
+ * connection, tool groups toggled. The real-server scenario is the only proof
+ * that a deleted upstream session is recovered transparently, so it runs when
+ * 127.0.0.1:8080 answers and is skipped otherwise.
  */
 
 import http from 'node:http'
