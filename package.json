@@ -1,7 +1,6 @@
 {
   "name": "dsh-unity-game-mode",
   "version": "0.1.0",
-  "private": true,
   "description": "A Unity game development mode for DeepSeek Harness: the full ptc preset plus the Unity Editor MCP connection, fronted by a session-surviving bridge.",
   "keywords": [
     "dsh",
@@ -11,7 +10,8 @@
     "mcp",
     "agent-preset"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "U0Pin",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/U0Pin/dsh-unity-mcp-client.git"
@@ -36,6 +36,7 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
+    "LICENSE",
     "README.md",
     "DEVELOPMENT.md"
   ],

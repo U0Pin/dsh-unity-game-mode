@@ -43,4 +43,10 @@
 - **AI无法直接看到mcp工具**：确认当前对话是`unity游戏开发`模式
 - **其它问题**：在 DSH 日志里找以 `unity-mcp-bridge:` 开头的行，连同现象一起发给维护者。
 
+## 许可证
+
+本仓库以 [MIT](LICENSE) 授权，版权归 U0Pin。
+
+例外：`cordis.patch.yml` 里的模式定义来自 DSH 自带的 `ptc` 预设，其使用与再分发遵循 DSH 本身的规定，不属于本仓库的 MIT 授权范围。上游 [MCP for Unity](https://github.com/CoplayDev/unity-mcp) 以 MIT 授权，不随本包分发。
+
 开发、维护和发版信息见 [DEVELOPMENT.md](DEVELOPMENT.md)。

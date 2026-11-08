@@ -56,10 +56,15 @@ Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与
 
 ## 兼容性与维护
 
-- `cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 模式的拷贝，不是官方发行物；对外分发前确认相关条款。
-- 应用升级后手动同步该清单、核对 `engines.dsh` 并升包版本。`engines.dsh` 锁在同一条小版本线上，跨线安装会被安装阶段拒绝，这是有意的。
+- 应用升级后手动同步 `cordis.patch.yml`、核对 `engines.dsh` 并升包版本。`engines.dsh` 锁在同一条小版本线上，跨线安装会被安装阶段拒绝，这是有意的。
 - 0.x 是测试版：次版本号提升可能带来不兼容变化。
 - 上游 MCP for Unity 有独立发布节奏，本包不锁定其版本。桥接依赖它的 streamable-HTTP 传输、`manage_tools` 的 `list_groups` 输出和工具上的 `_meta.fastmcp.tags`；这些契约变化时桥接要跟着改。
+
+## 许可证
+
+[MIT](LICENSE)，版权归 U0Pin。只有换版权人才需要同时改 `LICENSE` 和 `package.json` 的 `license` 字段。
+
+`cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 预设的拷贝，不是官方发行物；它随 DSH 应用发行，而 DSH 本身没有单独的开源许可，因此这份清单不在本仓库的 MIT 授权范围内。转公开或发布到插件市场之前，要先拿到 DSH 方面的许可，或改成不拷贝该清单的做法——这是前置条件，不是建议。
 
 ## 发版
 
