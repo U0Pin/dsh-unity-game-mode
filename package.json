@@ -14,11 +14,11 @@
   "author": "U0Pin",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/U0Pin/dsh-unity-mcp-client.git"
+    "url": "git+https://github.com/U0Pin/dsh-unity-game-mode.git"
   },
-  "homepage": "https://github.com/U0Pin/dsh-unity-mcp-client#readme",
+  "homepage": "https://github.com/U0Pin/dsh-unity-game-mode#readme",
   "bugs": {
-    "url": "https://github.com/U0Pin/dsh-unity-mcp-client/issues"
+    "url": "https://github.com/U0Pin/dsh-unity-game-mode/issues"
   },
   "type": "module",
   "main": "index.js",
@@ -41,7 +41,7 @@
     "DEVELOPMENT.md"
   ],
   "engines": {
-    "dsh": ">=0.2.2-rc.1 <0.2.3-0"
+    "dsh": ">=0.2.2-rc.1 <0.3.0"
   },
   "scripts": {
     "test": "node test/plugin-contract.test.mjs && node test/bridge.test.mjs"

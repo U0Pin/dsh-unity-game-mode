@@ -16,13 +16,13 @@
 2. 填入这个仓库地址（末尾的 `#v0.1.0` 是版本号，不要漏掉）：
 
    ```
-   https://github.com/U0Pin/dsh-unity-mcp-client#v0.1.0
+   https://github.com/U0Pin/dsh-unity-game-mode#v0.1.0
    ```
 
    填了没反应或报错时，换成下面这个地址再试一次：
 
    ```
-   git+https://github.com/U0Pin/dsh-unity-mcp-client.git#v0.1.0
+   git+https://github.com/U0Pin/dsh-unity-game-mode.git#v0.1.0
    ```
 3. 新建一个对话，在模式列表里选 `unity游戏开发`。模式在新建对话时选定，之后不能改；选错了新开一个对话即可。
 
@@ -30,6 +30,7 @@
 
 - 在工作区使用`unity游戏开发`模式新建对话，直接说需求就行，比如「给 Player 加一个二段跳」「把这个场景的灯光调暗」，AI会自己调用工具进行操作。
 - **一定要启动mcp的服务端！**Unity MCP 服务未启动时 ，AI调用工具会报错 。把 Unity 打开、在 `Window > MCP for Unity` 里启动服务，再让它重试即可，不用重开对话。
+- 插件会在本机 `127.0.0.1:18080` 上开一个桥接服务，只监听本机、外部访问不到。DSH 通过它连 Unity 的 MCP 服务器，所以 Unity 关掉之后工具还在、重新打开编辑器也不用重开对话。
 
 ## 升级与卸载
 
@@ -47,6 +48,6 @@
 
 本仓库以 [MIT](LICENSE) 授权，版权归 U0Pin。
 
-例外：`cordis.patch.yml` 里的模式定义来自 DSH 自带的 `ptc` 预设，其使用与再分发遵循 DSH 本身的规定，不属于本仓库的 MIT 授权范围。上游 [MCP for Unity](https://github.com/CoplayDev/unity-mcp) 以 MIT 授权，不随本包分发。
+`cordis.patch.yml` 里的模式定义派生自 DeepSeek Harness 自带的 `ptc` 预设（[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)，MIT，Copyright (c) 2026 DeepSeek），按同一许可使用。上游 [MCP for Unity](https://github.com/CoplayDev/unity-mcp) 以 MIT 授权，不随本包分发。
 
 开发、维护和发版信息见 [DEVELOPMENT.md](DEVELOPMENT.md)。

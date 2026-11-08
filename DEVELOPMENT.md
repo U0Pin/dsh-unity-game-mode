@@ -56,7 +56,7 @@ Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与
 
 ## 兼容性与维护
 
-- 应用升级后手动同步 `cordis.patch.yml`、核对 `engines.dsh` 并升包版本。`engines.dsh` 锁在同一条小版本线上，跨线安装会被安装阶段拒绝，这是有意的。
+- 应用升级后手动同步 `cordis.patch.yml`、核对 `engines.dsh` 并升包版本。`engines.dsh` 目前是 `>=0.2.2-rc.1 <0.3.0`：超出这个范围的 DSH 会在安装阶段拒绝，只有实测过的版本线变了才改这个范围。
 - 0.x 是测试版：次版本号提升可能带来不兼容变化。
 - 上游 MCP for Unity 有独立发布节奏，本包不锁定其版本。桥接依赖它的 streamable-HTTP 传输、`manage_tools` 的 `list_groups` 输出和工具上的 `_meta.fastmcp.tags`；这些契约变化时桥接要跟着改。
 
@@ -64,7 +64,7 @@ Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与
 
 [MIT](LICENSE)，版权归 U0Pin。只有换版权人才需要同时改 `LICENSE` 和 `package.json` 的 `license` 字段。
 
-`cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 预设的拷贝，不是官方发行物；它随 DSH 应用发行，而 DSH 本身没有单独的开源许可，因此这份清单不在本仓库的 MIT 授权范围内。转公开或发布到插件市场之前，要先拿到 DSH 方面的许可，或改成不拷贝该清单的做法——这是前置条件，不是建议。
+`cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 预设的拷贝。DSH 本身以 MIT 发布（[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)，Copyright (c) 2026 DeepSeek），拷贝与再分发都在许可范围内。代价是维护：预设不是稳定的公开接口，上游改动后要手动同步（见「兼容性与维护」）。
 
 ## 发版
 
