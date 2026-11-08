@@ -2,6 +2,8 @@
 
 `dsh-unity-game-mode` 给 DSH 加一个对话模式 `unity游戏开发`：在 PTC 全套工具之外接入 Unity 编辑器，编辑器重启也不会丢连接。
 
+> 0.x 测试版：模式内容与安装方式还可能调整，请按带标签的版本安装。
+
 ## 安装
 
 前置条件，每位安装者自己的机器：
@@ -15,10 +17,10 @@
 1. 打开 **添加插件**，填仓库地址并带版本标签：
 
    ```
-   https://github.com/U0Pin/dsh-unity-mcp-client#v1.1.1
+   https://github.com/U0Pin/dsh-unity-mcp-client#v0.1.0
    ```
 
-   安装器解析不了时改用 `git+https://github.com/U0Pin/dsh-unity-mcp-client.git#v1.1.1`。
+   安装器解析不了时改用 `git+https://github.com/U0Pin/dsh-unity-mcp-client.git#v0.1.0`。
 2. 新建对话时在模式列表选 `unity游戏开发`。模式在对话开始后不能更换。
 
 ## 使用
