@@ -30,7 +30,6 @@
 
 - 在工作区使用`unity游戏开发`模式新建对话，直接说需求就行，比如「给 Player 加一个二段跳」「把这个场景的灯光调暗」，AI会自己调用工具进行操作。
 - **一定要启动mcp的服务端！**Unity MCP 服务未启动时 ，AI调用工具会报错 。把 Unity 打开、在 `Window > MCP for Unity` 里启动服务，再让它重试即可，不用重开对话。
-- 插件会在本机 `127.0.0.1:18080` 上开一个桥接服务，只监听本机、外部访问不到。DSH 通过它连 Unity 的 MCP 服务器，所以 Unity 关掉之后工具还在、重新打开编辑器也不用重开对话。
 
 ## 升级与卸载
 
@@ -42,12 +41,12 @@
 - **安装时报错或被拒**：先确认这台机器能访问上面的 GitHub 地址，有仓库的访问权限，DSH 也升到最新；两样都正常还装不上，把报错发给维护者。
 - **AI 调用工具一直报错**：确认 Unity 开着，并且 `Window > MCP for Unity` 里的服务是启动状态；改完重试，不用重开对话。
 - **AI无法直接看到mcp工具**：确认当前对话是`unity游戏开发`模式
-- **其它问题**：在 DSH 日志里找以 `unity-mcp-bridge:` 开头的行，连同现象一起发给维护者。
 
 ## 许可证
 
-本仓库以 [MIT](LICENSE) 授权，版权归 U0Pin。
+MIT，版权归 U0Pin，完整条款见 [LICENSE](LICENSE)。
 
-`cordis.patch.yml` 里的模式定义派生自 DeepSeek Harness 自带的 `ptc` 预设（[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)，MIT，Copyright (c) 2026 DeepSeek），按同一许可使用。上游 [MCP for Unity](https://github.com/CoplayDev/unity-mcp) 以 MIT 授权，不随本包分发。
+`cordis.patch.yml` 派生自 DeepSeek Harness 的 `ptc` 预设（MIT，Copyright (c) 2026 DeepSeek）。
+上游 [MCP for Unity](https://github.com/CoplayDev/unity-mcp) 以 MIT 授权，不随本包分发。
 
 开发、维护和发版信息见 [DEVELOPMENT.md](DEVELOPMENT.md)。

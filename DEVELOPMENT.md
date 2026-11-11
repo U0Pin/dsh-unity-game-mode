@@ -62,9 +62,9 @@ Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与
 
 ## 许可证
 
-[MIT](LICENSE)，版权归 U0Pin。只有换版权人才需要同时改 `LICENSE` 和 `package.json` 的 `license` 字段。
+MIT，见 [LICENSE](LICENSE)。换版权人时同时改 `LICENSE` 和 `package.json` 的 `license` 字段。
 
-`cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 预设的拷贝。DSH 本身以 MIT 发布（[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)，Copyright (c) 2026 DeepSeek），拷贝与再分发都在许可范围内。代价是维护：预设不是稳定的公开接口，上游改动后要手动同步（见「兼容性与维护」）。
+`cordis.patch.yml` 是 DSH `ptc` 预设的拷贝，上游 MIT 允许拷贝，维护要求见「兼容性与维护」。
 
 ## 发版
 
