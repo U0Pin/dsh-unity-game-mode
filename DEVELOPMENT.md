@@ -1,73 +1,45 @@
 # 开发与维护
 
-面向修改这个包的人。安装、使用和排障入口见 [README.md](README.md)。
+面向修改这个包的人。安装、使用与排障见 [README.md](README.md)。
 
-## 仓库结构
+## 为什么需要桥
 
-| 文件 | 作用 |
-|---|---|
-| `package.json` | 包清单；`files` 白名单决定发布内容，`engines.dsh` 声明兼容的 DSH 版本 |
-| `cordis.patch.yml` | 组合补丁：`unity` 模式的子插件清单 + profile 级 `unity-mcp-bridge` 行 |
-| `index.js` | 桥接插件入口，绑定到 `unity-mcp-bridge` 行 |
-| `bridge.js` | 桥接实现与 session 语义 |
-| `locale/{zh,en}.json` | 插件列表里的显示名与说明 |
-| `icon.svg` | 插件图标 |
-| `test/` | 自检，不随包分发 |
-| 上游 | [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp)（MCP for Unity，MIT）：编辑器侧服务器，不随包分发 |
+Unity 的 MCP 服务器（[MCP for Unity](https://github.com/CoplayDev/unity-mcp)）随编辑器启停，编辑器重启会带走所有会话：带旧 `mcp-session-id` 的请求返回 `404 {"code": -32600, "message": "Session not found"}`。streamable-HTTP 不为此报 `onclose`，DSH 的 MCP 客户端不会自己发现，工具仍注册着、调用全部失败，只能重开对话。
 
-仓库根目录即包：安装器按仓库地址取包时，拿到的就是 `files` 白名单里的内容。
-
-## 桥接与失效语义
-
-Unity 的 MCP 服务器（[MCP for Unity](https://github.com/CoplayDev/unity-mcp)）随编辑器启停，编辑器重启会带走所有 MCP 会话：带旧 `mcp-session-id` 的请求返回 `404 {"code": -32600, "message": "Session not found"}`。streamable-HTTP 传输不为此报 `onclose`，DSH 的 MCP 客户端不会自己发现，工具仍注册着，后续调用全部失败，只能重开对话恢复。
-
-`bridge.js` 接管上游会话，对外提供一个不随编辑器消失的服务器：
+`bridge.js` 接管上游会话，对外提供一个不随编辑器消失的端点；`index.js` 只是把它挂到 `unity-mcp-bridge` 行上。
 
 ```
 DSH 会话 ──HTTP──▶ unity-mcp-bridge (127.0.0.1:18080/mcp) ──HTTP──▶ Unity MCP (127.0.0.1:8080/mcp)
 ```
 
-- `initialize` 立即返回：编辑器在线时是真实服务器信息，离线时是上次缓存或占位信息。编辑器关着也能开对话，工具不会掉。
-- 请求被转发；上游会话失效时桥接重建会话并把该请求重发一次。会话失效意味着服务器在执行之前就拒绝了请求，重发安全。
-- `tools/list` 在编辑器离线时退回缓存；监督循环在编辑器回来后重读，注入给模型的集合有变化才向下游广播 `notifications/tools/list_changed`。
-- 只注入没有被明确禁用的分组工具：分组由工具自带的 `_meta.fastmcp.tags: ["group:<name>"]` 标记，`manage_tools {action:"list_groups"}` 返回 `enabled: false` 的分组才隐藏；没有分组标签的工具（`manage_tools` 及其它元工具）永远保留；读不到分组状态时全部放行。
-- 有下游会话时监督循环轮询上游，避免服务器 30 分钟的会话空闲超时。
-- 端口被占用是安全的：第二个 Host 复用已在跑的桥接实例；先启动的 Host 退出后，剩下的在几秒内接管端口。
+## 桥的约定
 
-分组状态是上游会话级的，而桥接只维持一条上游会话，所以同时开着多个 Unity 对话时它们共享分组；编辑器重启后分组回到默认，桥接把可见集合同步回默认。
-
-## 配置
-
-行配置透传给 `createBridge`：未设置的项取 `bridge.js` 里 `DEFAULTS` 的值，`index.js` 另外补上 `stateFile` 的默认值。改端口要同步修改 `unity-mcp` 行的 `url`。
+- `initialize` 立即返回：编辑器在线时给真实服务器信息，离线时给上次缓存或占位信息，所以编辑器关着也能开对话。
+- 上游会话失效时重建会话并把该请求重发一次；只有「服务器执行前就拒绝」才算失效，所以重发安全。
+- `tools/list` 在编辑器离线时退回缓存；监督循环在编辑器回来后重读，注入的集合有变化才向下游广播 `notifications/tools/list_changed`。
+- 只注入没有被明确禁用的分组工具：分组取自工具的 `_meta.fastmcp.tags: ["group:<name>"]`，`manage_tools {action:"list_groups"}` 报 `enabled: false` 的才隐藏；没有分组标签的工具（`manage_tools` 等元工具）永远保留；读不到分组状态时全部放行。
+- 分组是上游会话级状态，而桥只维持一条上游会话：同时开多个 Unity 对话会共享分组，编辑器重启后回到默认并同步给下游。
+- 有下游会话时轮询上游，避开 30 分钟会话空闲超时；没有下游会话时释放上游会话。
+- 端口被占用是安全的：第二个 Host 复用已在跑的实例；先启动的退出后，剩下的在几秒内接管。
+- 改端口要同时改 `cordis.patch.yml` 里 `unity-mcp` 行的 `url`。
 
 ## 诊断
 
-`curl http://127.0.0.1:18080/health` 返回 `status()` 的快照：上游连接状态与会话 id、工具总数与注入数（`tools`/`visible`）、已启用分组、下游会话数与订阅流数量。
+`curl http://127.0.0.1:18080/health` 返回 `status()` 快照：上游连接状态与会话 id、工具总数与注入数（`tools`/`visible`）、已启用分组、下游会话数与订阅流数。
 
-Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与工具列表变化。桥接把最近一次的服务器信息与工具列表缓存到 `~/.dsh/cache/unity-mcp-bridge.json`，冷启动时先注册这些工具。
+Host 日志里 `unity-mcp-bridge:` 前缀的行记录连接、失效、重建与工具列表变化。最近一次的服务器信息与工具列表缓存在 `~/.dsh/cache/unity-mcp-bridge.json`，冷启动时先注册这些工具。
+
+## 打包与发版
+
+- 安装单位是 git 标签：用户装 `#v<version>` 对应的仓库内容，没有 npm 发布、没有自动更新。发版 = 改 `package.json` 版本号、同步 README 里的标签、打标签推送，说明写在标签注解里。
+- 改 `cordis.patch.yml` 需卸载重装，改 `index.js`/`bridge.js` 重启 Host 即可。
+- `cordis.patch.yml` 的子插件清单是 DSH 自带 `ptc` 预设的拷贝，不是稳定接口：应用升级后手动同步，别只改版本号。
+- `engines.dsh` 是 `>=0.2.2-rc.1 <0.3.0`，范围外的 DSH 在安装阶段就被拒绝；只有实测过的版本线变了才调整。
+
+## 上游依赖
+
+桥依赖 MCP for Unity 的三处契约：streamable-HTTP 传输、`manage_tools` 的 `list_groups` 输出、工具上的 `_meta.fastmcp.tags`。它有独立发布节奏，本包不锁版本；这三处变了桥要跟着改。
 
 ## 自检
 
-`npm test` 跑插件契约测试与桥接自测，两者也可分别用 `node test/plugin-contract.test.mjs`、`node test/bridge.test.mjs` 运行。桥接自测用假上游；需要真实服务器的用例只在本机 `127.0.0.1:8080` 可用时执行，否则跳过。
-
-## 本地开发
-
-用「本地目录」安装即链接安装。改 `cordis.patch.yml` 需卸载重装；改 `index.js`/`bridge.js` 重启 Host 即可。
-
-## 兼容性与维护
-
-- 应用升级后手动同步 `cordis.patch.yml`、核对 `engines.dsh` 并升包版本。`engines.dsh` 目前是 `>=0.2.2-rc.1 <0.3.0`：超出这个范围的 DSH 会在安装阶段拒绝，只有实测过的版本线变了才改这个范围。
-- 0.x 是测试版：次版本号提升可能带来不兼容变化。
-- 上游 MCP for Unity 有独立发布节奏，本包不锁定其版本。桥接依赖它的 streamable-HTTP 传输、`manage_tools` 的 `list_groups` 输出和工具上的 `_meta.fastmcp.tags`；这些契约变化时桥接要跟着改。
-
-## 许可证
-
-MIT，见 [LICENSE](LICENSE)。换版权人时同时改 `LICENSE` 和 `package.json` 的 `license` 字段。
-
-`cordis.patch.yml` 是 DSH `ptc` 预设的拷贝，上游 MIT 允许拷贝，维护要求见「兼容性与维护」。
-
-## 发版
-
-1. 改 `package.json` 版本号，同步 README 安装示例里的标签；应用版本变化时同步 `engines.dsh`。
-2. `npm test` 通过后提交并推送 `main`，打标签 `v<version>` 并推送标签；发布说明写在标签注解里。
-3. 通知使用者卸载旧版、按新标签安装。
+`npm test` 跑插件契约测试与桥接自测。真机用例只在本机 `127.0.0.1:8080` 有 Unity MCP 时执行，否则跳过——没有它就无法证明「编辑器重启后调用仍然成功」。
