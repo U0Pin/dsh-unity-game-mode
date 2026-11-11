@@ -1,6 +1,6 @@
 {
   "name": "dsh-unity-game-mode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Unity game development mode for DeepSeek Harness: the full ptc preset plus the Unity Editor MCP connection, fronted by a session-surviving bridge.",
   "keywords": [
     "dsh",
